@@ -1,5 +1,6 @@
 #include "src/compressor.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
