@@ -1,3 +1,20 @@
+common --enable_platform_specific_config
+
 build --repo_env=CC=clang
 build --features=layering_check
 build --cxxopt=-std=c++20
+
+build:minsize --compilation_mode=opt
+build:minsize --strip=always
+build:minsize --copt=-Oz
+build:minsize --copt=-ffunction-sections
+build:minsize --copt=-fdata-sections
+build:minsize --copt=-fvisibility=hidden
+build:minsize --cxxopt=-fvisibility-inlines-hidden
+build:minsize --features=thin_lto
+
+build:macos --linkopt=-Wl,-dead_strip
+build:linux --copt=-ffunction-sections
+build:linux --copt=-fdata-sections
+build:linux --linkopt=-Wl,--gc-sections
+build:linux --linkopt=-Wl,--strip-all
