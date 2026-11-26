@@ -1,44 +1,28 @@
+#![no_std]
+#![no_main]
+
 mod compress;
 mod decompress;
-mod error;
 
-use std::process::ExitCode;
+use core::panic::PanicInfo;
 
-use clap::Parser;
+use crate::{compress::compress, decompress::decompress};
 
-use crate::{
-  compress::compress,
-  decompress::decompress,
-  error::{EnWikError, EnWikResult},
-};
+use rustix::fs::{Mode, OFlags, open};
+use rustix::io::{read, write};
+use rustix::stdio::stdout;
 
-#[derive(Parser, Debug)]
-struct Args {
-  #[arg(long)]
-  compress: Option<String>,
-
-  #[arg(long)]
-  decompress: Option<String>,
+unsafe extern "C" {
+  fn _exit(status: i32) -> !;
 }
 
-fn run() -> EnWikResult {
-  let args = Args::try_parse()?;
-
-  match (args.compress, args.decompress) {
-    (Some(input), None) => compress(&input, ""),
-    (None, Some(input)) => decompress(&input, ""),
-    _ => {
-      Err(EnWikError::new("Must specify one of `--compress` or `--decompress".to_owned()).into())
-    }
-  }
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+  unsafe { _exit(1) }
 }
 
-fn main() -> ExitCode {
-  let result = run();
-  if let Err(err) = result {
-    eprintln!("Error: {err}");
-    return ExitCode::FAILURE;
-  }
-
-  ExitCode::SUCCESS
+#[unsafe(no_mangle)]
+pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
+  let _ = write(unsafe { stdout() }, b"Hello from macOS no_std!\n");
+  0
 }
