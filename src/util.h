@@ -25,3 +25,20 @@
 #define ASSIGN_OR_RETURN(lhs, rexpr)                                           \
   ASSIGN_OR_RETURN_IMPL(STATUS_MACROS_IMPL_CONCAT(_status_or_value, __LINE__), \
                         lhs, rexpr)
+
+#ifdef NDEBUG
+#define ASSUME(expr) __builtin_assume((expr))
+#else
+#define ASSUME(expr)                                        \
+  if (!(expr)) {                                            \
+    internal::assumption_failed(#expr, __FILE__, __LINE__); \
+  }                                                         \
+  __builtin_assume((expr))
+#endif
+
+namespace internal {
+
+[[noreturn]] void assumption_failed(const char* expr, const char* file,
+                                    int line);
+
+}
