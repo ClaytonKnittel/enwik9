@@ -49,6 +49,20 @@ std::ostream& operator<<(std::ostream& out, const CharacterCode& code) {
   return out;
 }
 
+template <typename T, typename F>
+auto HuffmanTree::MapNode(OrChar<T>&& or_char, F&& f) {
+  using U = decltype(f(std::declval<T&&>()));
+  return std::visit(absl::Overload{
+                        [](Char c) -> OrChar<U> {
+                          return c;
+                        },
+                        [&f](T&& t) -> OrChar<U> {
+                          return std::forward<F>(f)(std::move(t));
+                        },
+                    },
+                    std::move(or_char));
+}
+
 std::pair<Char, CharacterCode> HuffmanTree::Iterator::operator*() const {
   const Node* n = stack_.back();
   size_t i = stack_.size() - 1;
@@ -74,7 +88,7 @@ HuffmanTree::Iterator& HuffmanTree::Iterator::operator++() {
 
   mask_ |= 1u << i;
   const auto* r = stack_[i];
-  if (const auto* n = std::get_if<std::unique_ptr<Node>>(&r->one)) {
+  if (const auto* n = std::get_if<NodePtr>(&r->one)) {
     PushNode(n->get());
   }
   return *this;
@@ -85,7 +99,7 @@ void HuffmanTree::Iterator::PushNode(const Node* n) {
   while (true) {
     if (std::holds_alternative<Char>(n->zero)) break;
 
-    const Node* l = std::get<std::unique_ptr<Node>>(n->zero).get();
+    const Node* l = std::get<NodePtr>(n->zero).get();
     stack_.push_back(l);
     n = l;
   }
@@ -133,12 +147,12 @@ HuffmanTree HuffmanTree::BuildFromFrequencies(
                     std::move(nodes[0].first));
 }
 
-size_t HuffmanTree::NodeDepth(const OrChar<std::unique_ptr<Node>>& n) {
+size_t HuffmanTree::NodeDepth(const OrChar<NodePtr>& n) {
   return std::visit(absl::Overload{
                         [](Char) -> size_t {
                           return 0;
                         },
-                        [](const std::unique_ptr<Node>& n) {
+                        [](const NodePtr& n) {
                           return DepthImpl(*n);
                         },
                     },
@@ -158,7 +172,7 @@ void HuffmanTree::PrintImpl(std::ostream& out, const Node& node, size_t depth) {
     out << " " << *c << std::endl;
   } else {
     out << std::endl;
-    const Node& zero = *std::get<std::unique_ptr<Node>>(node.zero);
+    const Node& zero = *std::get<NodePtr>(node.zero);
     PrintImpl(out, zero, depth + 1);
   }
 
@@ -167,7 +181,7 @@ void HuffmanTree::PrintImpl(std::ostream& out, const Node& node, size_t depth) {
     out << " " << *c << std::endl;
   } else {
     out << std::endl;
-    const Node& zero = *std::get<std::unique_ptr<Node>>(node.one);
+    const Node& zero = *std::get<NodePtr>(node.one);
     PrintImpl(out, zero, depth + 1);
   }
 }

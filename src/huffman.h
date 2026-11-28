@@ -3,7 +3,6 @@
 #include <istream>
 #include <memory>
 
-#include "absl/functional/overload.h"
 #include "absl/status/statusor.h"
 
 #include "src/char.h"
@@ -21,23 +20,14 @@ class HuffmanTree {
   using OrChar = std::variant<T, Char>;
 
   template <typename T, typename F>
-  static decltype(auto) MapNode(OrChar<T>&& or_char, F&& f) {
-    using U = decltype(f(std::declval<T&&>()));
-    return std::visit(absl::Overload{
-                          [](Char c) -> OrChar<U> {
-                            return c;
-                          },
-                          [&f](T&& t) -> OrChar<U> {
-                            return std::forward<F>(f)(std::move(t));
-                          },
-                      },
-                      std::move(or_char));
-  }
+  static auto MapNode(OrChar<T>&& or_char, F&& f);
 
   struct Node {
     OrChar<std::unique_ptr<Node>> zero;
     OrChar<std::unique_ptr<Node>> one;
   };
+
+  using NodePtr = std::unique_ptr<Node>;
 
   class Iterator {
    public:
@@ -90,7 +80,7 @@ class HuffmanTree {
  private:
   explicit HuffmanTree(Node root) : root_(std::move(root)) {}
 
-  static size_t NodeDepth(const OrChar<std::unique_ptr<Node>>& n);
+  static size_t NodeDepth(const OrChar<NodePtr>& n);
   static size_t DepthImpl(const Node& node);
 
   static void PrintImpl(std::ostream& out, const Node& node, size_t depth);
