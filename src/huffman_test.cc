@@ -71,4 +71,19 @@ TEST(HuffmanTest, ComplexTree) {
                                    HasEncodedLength(Char::ascii('g'), 2)));
 }
 
+TEST(HuffmanTest, Unicode) {
+  auto tree = HuffmanTree::BuildFromFrequencies({
+      {Char::ParseCharacter("你"), 2},
+      {Char::ParseCharacter("好"), 3},
+      {Char::ParseCharacter("凯"), 4},
+      {Char::ParseCharacter("兰"), 6},
+  });
+
+  EXPECT_THAT(tree, UnorderedElementsAre(
+                        HasEncodedLength(Char::ParseCharacter("你"), 3),
+                        HasEncodedLength(Char::ParseCharacter("好"), 3),
+                        HasEncodedLength(Char::ParseCharacter("凯"), 2),
+                        HasEncodedLength(Char::ParseCharacter("兰"), 1)));
+}
+
 }  // namespace

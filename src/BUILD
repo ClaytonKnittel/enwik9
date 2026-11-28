@@ -54,6 +54,7 @@ cc_test(
 cc_library(
     name = "char",
     hdrs = ["char.h"],
+    srcs = ["char.cc"],
     deps = [
         "@abseil-cpp//absl/log:absl_check",
     ]
