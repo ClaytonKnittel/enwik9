@@ -7,6 +7,10 @@ using ::testing::UnorderedElementsAre;
 
 namespace {
 
+MATCHER_P(EncodedLength, expected_length, "") {
+  return arg.length == expected_length;
+}
+
 MATCHER_P2(HasEncodedLength, expected_char, expected_length, "") {
   return arg.first == expected_char && arg.second.length == expected_length;
 }
@@ -84,6 +88,21 @@ TEST(HuffmanTest, Unicode) {
                         HasEncodedLength(Char::ParseCharacter("好"), 3),
                         HasEncodedLength(Char::ParseCharacter("凯"), 2),
                         HasEncodedLength(Char::ParseCharacter("兰"), 1)));
+}
+
+TEST(HuffmanTest, EncodeSimple) {
+  auto tree = HuffmanTree::BuildFromFrequencies({
+      {Char::ascii('a'), 10},
+      {Char::ascii('b'), 5},
+  });
+  auto code = HuffmanCode::Build(tree);
+
+  EXPECT_THAT(code.code(Char::ascii('a')), EncodedLength(1));
+  EXPECT_THAT(code.code(Char::ascii('b')), EncodedLength(1));
+
+  EXPECT_THAT(code,
+              UnorderedElementsAre(HasEncodedLength(Char::ascii('a'), 1),
+                                   HasEncodedLength(Char::ascii('b'), 1)));
 }
 
 }  // namespace

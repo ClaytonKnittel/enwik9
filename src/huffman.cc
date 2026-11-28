@@ -23,22 +23,6 @@ absl::flat_hash_map<Char, size_t> CharFrequency(std::string_view stream) {
   return freq;
 }
 
-class HuffmanCode {
- public:
-  static HuffmanCode Build(const HuffmanTree& tree) {}
-
- private:
-  struct Code {
-    uint32_t code;
-    uint32_t length;
-  };
-
-  explicit HuffmanCode(absl::flat_hash_map<Char, Code>&& map)
-      : map_(std::move(map)) {}
-
-  absl::flat_hash_map<Char, Code> map_;
-};
-
 }  // namespace
 
 std::ostream& operator<<(std::ostream& out, const CharacterCode& code) {
@@ -184,6 +168,15 @@ void HuffmanTree::PrintImpl(std::ostream& out, const Node& node, size_t depth) {
     const Node& zero = *std::get<NodePtr>(node.one);
     PrintImpl(out, zero, depth + 1);
   }
+}
+
+HuffmanCode HuffmanCode::Build(const HuffmanTree& tree) {
+  absl::flat_hash_map<Char, CharacterCode> char_map;
+  for (const auto [c, code] : tree) {
+    auto [it, inserted] = char_map.emplace(c, code);
+    ABSL_DCHECK(inserted);
+  }
+  return HuffmanCode(std::move(char_map));
 }
 
 absl::StatusOr<std::unique_ptr<std::istream>> Huffman::Compress(

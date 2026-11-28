@@ -1,8 +1,10 @@
 #pragma once
 
 #include <istream>
+#include <iterator>
 #include <memory>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 
 #include "src/char.h"
@@ -31,6 +33,9 @@ class HuffmanTree {
 
   class Iterator {
    public:
+    using iterator_concept = std::input_iterator_tag;
+    using value_type = std::pair<Char, CharacterCode>;
+
     explicit Iterator(const Node& root) {
       PushNode(&root);
     }
@@ -38,12 +43,15 @@ class HuffmanTree {
     struct EndTag {};
     explicit Iterator(EndTag) {}
 
-    std::pair<Char, CharacterCode> operator*() const;
+    value_type operator*() const;
 
     Iterator& operator++();
 
     bool operator==(const Iterator& other) {
       return mask_ == other.mask_ && stack_.size() == other.stack_.size();
+    }
+    bool operator!=(const Iterator& other) {
+      return !(*this == other);
     }
 
    private:
@@ -54,7 +62,7 @@ class HuffmanTree {
   };
 
  public:
-  using value_type = std::pair<Char, CharacterCode>;
+  using value_type = Iterator::value_type;
   using const_iterator = Iterator;
 
   static HuffmanTree BuildFromFrequencies(
@@ -86,6 +94,32 @@ class HuffmanTree {
   static void PrintImpl(std::ostream& out, const Node& node, size_t depth);
 
   Node root_;
+};
+
+class HuffmanCode {
+ public:
+  using value_type = std::pair<Char, CharacterCode>;
+  using const_iterator =
+      absl::flat_hash_map<Char, CharacterCode>::const_iterator;
+
+  static HuffmanCode Build(const HuffmanTree& tree);
+
+  CharacterCode code(Char c) const {
+    return map_.at(c);
+  }
+
+  const_iterator begin() const {
+    return map_.begin();
+  }
+  const_iterator end() const {
+    return map_.end();
+  }
+
+ private:
+  explicit HuffmanCode(absl::flat_hash_map<Char, CharacterCode>&& map)
+      : map_(std::move(map)) {}
+
+  absl::flat_hash_map<Char, CharacterCode> map_;
 };
 
 class Huffman : public Compressor {
