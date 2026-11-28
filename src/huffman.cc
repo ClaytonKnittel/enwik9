@@ -25,6 +25,13 @@ absl::flat_hash_map<Char, size_t> CharFrequency(std::string_view stream) {
 
 }  // namespace
 
+BitStream& operator<<(BitStream& out, const CharacterCode& code) {
+  for (uint32_t i = 0; i < code.length; ++i) {
+    out.Put(((code.code >> i) & 0x1) != 0);
+  }
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const CharacterCode& code) {
   out << "0b";
   for (size_t i = code.length - 1; i < code.length; --i) {
@@ -177,6 +184,14 @@ HuffmanCode HuffmanCode::Build(const HuffmanTree& tree) {
     ABSL_DCHECK(inserted);
   }
   return HuffmanCode(std::move(char_map));
+}
+
+BitStream HuffmanCode::Encode(std::string_view input) const {
+  BitStream out;
+  for (Char c : Char::ParseString(input)) {
+    out << this->code(c);
+  }
+  return out;
 }
 
 absl::StatusOr<std::unique_ptr<std::istream>> Huffman::Compress(

@@ -7,6 +7,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 
+#include "src/bit_stream.h"
 #include "src/char.h"
 #include "src/compressor.h"
 
@@ -14,6 +15,7 @@ struct CharacterCode {
   uint32_t code;
   uint32_t length;
 
+  friend BitStream& operator<<(BitStream&, const CharacterCode&);
   friend std::ostream& operator<<(std::ostream&, const CharacterCode&);
 };
 
@@ -114,6 +116,8 @@ class HuffmanCode {
   const_iterator end() const {
     return map_.end();
   }
+
+  BitStream Encode(std::string_view input) const;
 
  private:
   explicit HuffmanCode(absl::flat_hash_map<Char, CharacterCode>&& map)
