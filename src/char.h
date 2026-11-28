@@ -48,7 +48,7 @@ class Char {
         }
       }
 
-      out.push_back(Char{ c });
+      out.push_back(Char{c});
     }
 
     return out;

@@ -7,6 +7,14 @@ cc_binary(
 )
 
 cc_library(
+    name = "bit_stream",
+    hdrs = ["bit_stream.h"],
+    deps = [
+        "@abseil-cpp//absl/types:span",
+    ]
+)
+
+cc_library(
     name = "compressor",
     hdrs = ["compressor.h"],
     srcs = ["compressor.cc"],
@@ -23,10 +31,13 @@ cc_library(
     hdrs = ["huffman.h"],
     srcs = ["huffman.cc"],
     deps = [
+        ":bit_stream",
         ":char",
         ":compressor",
         "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/functional:overload",
         "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/types:span",
     ]
 )
 
