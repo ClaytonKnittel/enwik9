@@ -41,6 +41,16 @@ cc_library(
     ]
 )
 
+cc_test(
+    name = "huffman_test",
+    srcs = ["huffman_test.cc"],
+    deps = [
+        ":huffman",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ]
+)
+
 cc_library(
     name = "char",
     hdrs = ["char.h"],

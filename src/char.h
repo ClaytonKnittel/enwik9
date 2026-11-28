@@ -1,3 +1,4 @@
+#pragma once
 
 #include <ostream>
 
@@ -18,6 +19,15 @@ class Char {
   }
 
  public:
+  static Char null() {
+    return Char(0);
+  }
+
+  static Char ascii(char c) {
+    ABSL_DCHECK_LE(c, kMaxAscii);
+    return Char(c);
+  }
+
   static std::vector<Char> ParseString(absl::string_view input) {
     std::vector<Char> out;
     out.reserve(input.size());
